@@ -1,0 +1,1 @@
+print(random_number_between_0_to_1)

@@ -1,6 +1,6 @@
 #subscripting
 print("hello"[0])
-#concatenation
+#concatenation is used to join two strings
 print("123" + "353")
 #integers
 print(135 + 808)
