@@ -1,0 +1,40 @@
+{
+  "dataset": "student_performance",
+  "created_date": "2025-10-12",
+  "students": [
+    {
+      "id": 1,
+      "name": "Raj",
+      "math": 85,
+      "science": 90,
+      "passed": true
+    },
+    {
+      "id": 2,
+      "name": "Priya",
+      "math": 78,
+      "science": 82,
+      "passed": true
+    },
+    {
+      "id": 3,
+      "name": "Amit",
+      "math": 45,
+      "science": 55,
+      "passed": false
+    },
+    {
+      "id": 4,
+      "name": "Sneha",
+      "math": 92,
+      "science": 88,
+      "passed": true
+    }
+  ],
+  "statistics": {
+    "total_students": 4,
+    "pass_rate": 0.75,
+    "avg_math": 75.0,
+    "avg_science": 78.75
+  }
+}
