@@ -13,3 +13,6 @@ if choice_1 == "left":
         print("lost")      
 else:
     print ("you lost")            
+
+
+
