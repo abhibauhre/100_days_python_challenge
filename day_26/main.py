@@ -1,37 +1,124 @@
-import requests
-from twilio.rest import Client
+"""
+Personal Productivity Tracker
+ Log daily tasks
+ Fetch motivational quotes from API
+ Analyze productivity with pandas
+ Save/load data (CSV/JSON)
+ Uses: functions, OOP, comprehensions, error handling, API, pandas, file I/O
+"""
 import os
+import json
+import csv
+import requests
+from datetime import datetime
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
-OWN_endpoint = "https://api.openweathermap.org/data/2.5/forecast"
-api_key = os.environ.get("OPENWEATHER_API_KEY")
-account_sid = os.environ.get("TWILIO_ACCOUNT_SID")
-auth_token = os.environ.get("TWILIO_AUTH_TOKEN")
+# --- OOP: Task class ---
+class Task:
+    def __init__(self, description, completed=False, timestamp=None):
+        self.description = description
+        self.completed = completed
+        self.timestamp = timestamp or datetime.now().isoformat()
+    def to_dict(self):
+        return {"description": self.description, "completed": self.completed, "timestamp": self.timestamp}
+    @staticmethod
+    def from_dict(d):
+        return Task(d["description"], d["completed"], d["timestamp"])
 
+# --- File I/O: Load/Save tasks ---
+TASKS_FILE = "tasks.json"
+def save_tasks(tasks):
+    with open(TASKS_FILE, "w") as f:
+        json.dump([t.to_dict() for t in tasks], f, indent=2)
+def load_tasks():
+    if not os.path.exists(TASKS_FILE):
+        return []
+    with open(TASKS_FILE) as f:
+        return [Task.from_dict(d) for d in json.load(f)]
 
-weather_params = {
-    "lat": 28.535517,
-    "lon": 77.391029,  
-    "appid": api_key,
-    "cnt":4,
-}
+# --- API: Get motivational quote ---
+def get_motivational_quote():
+    try:
+        r = requests.get("https://api.quotable.io/random?tags=motivational|inspirational", timeout=5)
+        if r.status_code == 200:
+            return r.json()["content"]
+    except Exception:
+        pass
+    return "Keep going! You can do it!"
 
-response = requests.get(OWN_endpoint, params=weather_params)
-response.raise_for_status()
-weather_data = response.json()
+# --- Pandas: Analyze productivity ---
+def analyze_tasks(tasks):
+    if not pd:
+        print("pandas not installed. Skipping analysis.")
+        return
+    if not tasks:
+        print("No tasks to analyze.")
+        return
+    df = pd.DataFrame([t.to_dict() for t in tasks])
+    df["date"] = pd.to_datetime(df["timestamp"]).dt.date
+    summary = df.groupby("date")["completed"].sum()
+    print("\nProductivity by day:")
+    print(summary)
 
-will_rain = False
+# --- Main menu ---
+def main():
+    tasks = load_tasks()
+    while True:
+        print("\n--- Personal Productivity Tracker ---")
+        print("1. Add task")
+        print("2. List tasks")
+        print("3. Mark task as completed")
+        print("4. Save tasks to CSV")
+        print("5. Analyze productivity (pandas)")
+        print("6. Get motivational quote")
+        print("7. Exit")
+        choice = input("Choose an option: ").strip()
+        if choice == "1":
+            desc = input("Task description: ").strip()
+            if desc:
+                tasks.append(Task(desc))
+                print("Task added.")
+        elif choice == "2":
+            if not tasks:
+                print("No tasks yet.")
+            else:
+                for i, t in enumerate(tasks, 1):
+                    status = "✓" if t.completed else "✗"
+                    print(f"{i}. {t.description} [{status}] ({t.timestamp[:10]})")
+        elif choice == "3":
+            incompletes = [t for t in tasks if not t.completed]
+            if not incompletes:
+                print("No incomplete tasks.")
+            else:
+                for i, t in enumerate(incompletes, 1):
+                    print(f"{i}. {t.description}")
+                try:
+                    idx = int(input("Mark which task as completed? ")) - 1
+                    if 0 <= idx < len(incompletes):
+                        incompletes[idx].completed = True
+                        print("Task marked as completed.")
+                except Exception:
+                    print("Invalid input.")
+        elif choice == "4":
+            with open("tasks.csv", "w", newline="") as f:
+                writer = csv.DictWriter(f, fieldnames=["description", "completed", "timestamp"])
+                writer.writeheader()
+                writer.writerows([t.to_dict() for t in tasks])
+            print("Tasks saved to tasks.csv.")
+        elif choice == "5":
+            analyze_tasks(tasks)
+        elif choice == "6":
+            print("Motivational quote:")
+            print(get_motivational_quote())
+        elif choice == "7":
+            save_tasks(tasks)
+            print("Goodbye!")
+            break
+        else:
+            print("Invalid option.")
 
-for data in weather_data["list"]:
-    condition_code = data["weather"][0]["id"]
-    if condition_code < 700:
-        will_rain = True
-if will_rain:
-    client = Client(account_sid, auth_token)
-
-    message = client.messages.create(
-        body="It's going to rain today. Remember to bring an ☔️",
-        from_='+12295958296',
-        to=os.environ.get("TO_PHONE_NUMBER")
-    )
-
-    print(message.status)
+if __name__ == "__main__":
+    main()
