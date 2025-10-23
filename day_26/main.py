@@ -122,3 +122,26 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+# --- Random User Info Fetcher ---
+def fetch_random_user():
+    url = "https://randomuser.me/api/"
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        user = data['results'][0]
+        name = f"{user['name']['title']} {user['name']['first']} {user['name']['last']}"
+        email = user['email']
+        country = user['location']['country']
+        picture = user['picture']['large']
+        print("--- Random User Info ---")
+        print(f"Name: {name}")
+        print(f"Email: {email}")
+        print(f"Country: {country}")
+        print(f"Profile Picture URL: {picture}")
+    except Exception as e:
+        print("Failed to fetch user data:", e)
+
+if __name__ == "__main__":
+    fetch_random_user()
