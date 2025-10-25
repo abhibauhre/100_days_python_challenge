@@ -145,3 +145,19 @@ def fetch_random_user():
 
 if __name__ == "__main__":
     fetch_random_user()
+
+# --- Mini Project: Joke Fetcher ---
+def fetch_joke():
+    url = "https://v2.jokeapi.dev/joke/Any?type=single"
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        joke = data.get('joke', 'No joke found.')
+        print("--- Random Joke ---")
+        print(joke)
+    except Exception as e:
+        print("Failed to fetch joke:", e)
+
+if __name__ == "__main__":
+    fetch_joke()
